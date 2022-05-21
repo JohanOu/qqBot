@@ -34,11 +34,7 @@ var play = false
 func (p Processor) ProcessMessage(input string, data *dto.WSATMessageData ,words map[string]string) error {
 	ctx := context.Background()
 	cmd := message.ParseCommand(input)
-	//// 进入到私信逻辑
-	//if cmd.Cmd == "dm" {
-	//	p.dmHandler(data)
-	//	return nil
-	//}
+
 	beginWord := getBeginWord(words)
 
 	switch cmd.Cmd {
