@@ -40,17 +40,15 @@ func (p Processor) sendReply(ctx context.Context, channelID string, toCreate *dt
 		log.Println(err)
 	}
 }
-func (p Processor) sendReplyByString(ctx context.Context, data *dto.WSATMessageData, messageStr string) {
-
+func (p Processor) sendReplyByString(ctx context.Context, dataID string, channelID string, messageStr string) {
 	toCreate := &dto.MessageToCreate{
 		Content: messageStr,
 		MessageReference: &dto.MessageReference{
-			MessageID:             data.ID,
+			MessageID: dataID,
 			IgnoreGetMessageError: false,
 		},
 	}
-
-	if _, err := p.api.PostMessage(ctx, data.ChannelID, toCreate); err != nil {
+	if _, err := p.api.PostMessage(ctx, channelID, toCreate); err != nil {
 		log.Println(err)
 	}
 }

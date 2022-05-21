@@ -44,31 +44,31 @@ func (p Processor) ProcessMessage(input string, data *dto.WSATMessageData ,words
 	switch cmd.Cmd {
 	case CmdWordDragon:
 		play = true
-		p.sendReplyByString(ctx, data, beginWord)
+		p.sendReplyByString(ctx, data.ID, data.ChannelID, beginWord)
 		lastWord = beginWord
 	case CmdStopWordDragon:
 		if play{
 			play = false
-			p.sendReplyByString(ctx, data, StopTip)
+			p.sendReplyByString(ctx, data.ID, data.ChannelID, StopTip)
 		}else{
-			p.sendReplyByString(ctx, data, ToStartTip)
+			p.sendReplyByString(ctx, data.ID, data.ChannelID, ToStartTip)
 		}
 	default:
 		if play{
 			if isWordLegal(cmd.Cmd, words) && isWordDragon(cmd.Cmd, lastWord) {
 				nextWord := getWord(cmd.Cmd, words)
-				p.sendReplyByString(ctx, data, nextWord)
+				p.sendReplyByString(ctx, data.ID, data.ChannelID, nextWord)
 				lastWord = nextWord
 			} else if cmd.Cmd == CmdExplainWord {
 				value := getWordMeaning(lastWord, words)
-				p.sendReplyByString(ctx, data, value)
+				p.sendReplyByString(ctx, data.ID, data.ChannelID, value)
 			} else if isWordLegal(cmd.Cmd, words) == false {
-				p.sendReplyByString(ctx, data, NotWordTip)
+				p.sendReplyByString(ctx, data.ID, data.ChannelID, NotWordTip)
 			} else if isWordDragon(cmd.Cmd, lastWord) == false {
-				p.sendReplyByString(ctx, data, NotMatchDragonTip)
+				p.sendReplyByString(ctx, data.ID, data.ChannelID, NotMatchDragonTip)
 			}
 		}else{
-			p.sendReplyByString(ctx, data, NormalTip)
+			p.sendReplyByString(ctx, data.ID, data.ChannelID, NormalTip)
 		}
 	}
 	return nil
