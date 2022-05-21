@@ -21,103 +21,56 @@ const (
 	CmdStopWordDragon = "/停止接龙"
 	CmdExplainWord = "/查看释义"
 )
+const(
+	StopTip = "欢迎下次使用！"
+	ToStartTip = "接龙还没有开始哦！输入[成语接龙]开始接龙游戏！"
+	NotWordTip = "输入的不是成语哦,请重试！"
+	NotMatchDragonTip = "输入的成语没有接到上一个成语哦,请重试！"
+	NormalTip = "输入[/成语接龙]开始游戏！游戏中可回复[/查看释义]查看成语含义！"
+)
 var lastWord string
 var play = false
 // ProcessMessage is a function to process message
 func (p Processor) ProcessMessage(input string, data *dto.WSATMessageData ,words map[string]string) error {
 	ctx := context.Background()
 	cmd := message.ParseCommand(input)
-	toCreate := &dto.MessageToCreate{
-		Content: "默认回复" + message.Emoji(307),
-		MessageReference: &dto.MessageReference{
-			// 引用这条消息
-			MessageID:             data.ID,
-			IgnoreGetMessageError: true,
-		},
-	}
-
-	// 进入到私信逻辑
-	if cmd.Cmd == "dm" {
-		p.dmHandler(data)
-		return nil
-	}
+	//// 进入到私信逻辑
+	//if cmd.Cmd == "dm" {
+	//	p.dmHandler(data)
+	//	return nil
+	//}
 	beginWord := getBeginWord(words)
 
 	switch cmd.Cmd {
-	case "hi":
-		p.sendReply(ctx, data.ChannelID, toCreate)
-	case "time":
-		toCreate.Content = genReplyContent(data)
-		p.sendReply(ctx, data.ChannelID, toCreate)
 	case CmdWordDragon:
 		play = true
-		toStart := &dto.MessageToCreate{
-			Content: beginWord,
-			MessageReference: &dto.MessageReference{
-				MessageID:             data.ID,
-				IgnoreGetMessageError: false,
-			},
-		}
-		p.sendReply(ctx, data.ChannelID, toStart)
+		p.sendReplyByString(ctx, data, beginWord)
 		lastWord = beginWord
 	case CmdStopWordDragon:
 		if play{
 			play = false
-			toCreate.Content = "欢迎下次使用！"
-			p.sendReply(ctx,data.ChannelID,toCreate)
+			p.sendReplyByString(ctx, data, StopTip)
 		}else{
-			toCreate.Content = "接龙还没有开始哦！输入[成语接龙]开始接龙游戏！"
-			p.sendReply(ctx,data.ChannelID,toCreate)
+			p.sendReplyByString(ctx, data, ToStartTip)
 		}
 	default:
 		if play{
 			if isWordLegal(cmd.Cmd, words) && isWordDragon(cmd.Cmd, lastWord) {
 				nextWord := getWord(cmd.Cmd, words)
-				toNext := &dto.MessageToCreate{
-					Content: nextWord,
-					MessageReference: &dto.MessageReference{
-						MessageID:             data.ID,
-						IgnoreGetMessageError: false,
-					},
-				}
-				p.sendReply(ctx, data.ChannelID, toNext)
+				p.sendReplyByString(ctx, data, nextWord)
 				lastWord = nextWord
 			} else if cmd.Cmd == CmdExplainWord {
 				value := getWordMeaning(lastWord, words)
-				toNext := &dto.MessageToCreate{
-					Content: value,
-					MessageReference: &dto.MessageReference{
-						MessageID:             data.ID,
-						IgnoreGetMessageError: false,
-					},
-				}
-				p.sendReply(ctx, data.ChannelID, toNext)
+				p.sendReplyByString(ctx, data, value)
 			} else if isWordLegal(cmd.Cmd, words) == false {
-				toNext := &dto.MessageToCreate{
-					Content: "输入的不是成语哦,请重试！",
-					MessageReference: &dto.MessageReference{
-						MessageID:             data.ID,
-						IgnoreGetMessageError: false,
-					},
-				}
-				p.sendReply(ctx, data.ChannelID, toNext)
+				p.sendReplyByString(ctx, data, NotWordTip)
 			} else if isWordDragon(cmd.Cmd, lastWord) == false {
-				toNext := &dto.MessageToCreate{
-					Content: "输入的成语没有接到上一个成语哦,请重试！",
-					MessageReference: &dto.MessageReference{
-						MessageID:             data.ID,
-						IgnoreGetMessageError: false,
-					},
-				}
-				p.sendReply(ctx, data.ChannelID, toNext)
+				p.sendReplyByString(ctx, data, NotMatchDragonTip)
 			}
 		}else{
-			toCreate.Content = "输入[/成语接龙]开始游戏！游戏中可回复[/查看释义]查看成语含义！"
-			p.sendReply(ctx, data.ChannelID, toCreate)
+			p.sendReplyByString(ctx, data, NormalTip)
 		}
-
 	}
-
 	return nil
 }
 
